@@ -2,6 +2,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-color: #4a5568;
     transition: background 0.6s ease-in-out;
     margin: 0;
     font-family: Arial, sans-serif;
@@ -28,6 +29,7 @@ input {
     margin-bottom: 12px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    box-sizing: border-box;
 }
 
 button {
@@ -44,35 +46,86 @@ button:hover {
     background: #0652dd;
 }
 
+.subtitulo {
+    color: #666;
+    margin-top: -8px;
+}
+
+.rotulo-dia {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #0984e3;
+    font-weight: bold;
+    margin: 4px 0 0;
+}
+
 .resultado {
-    margin-top: 20px;
+    margin-top: 12px;
+}
+
+.resultado p {
+    margin: 6px 0;
 }
 
 .erro {
     color: red;
 }
 
+/* NAVEGAÇÃO ENTRE DIAS (ontem / hoje / amanhã) */
+.dia-nav {
+    display: flex;
+    gap: 6px;
+    margin-top: 16px;
+}
+
+.dia-nav form {
+    flex: 1;
+    margin: 0;
+}
+
+.dia-btn {
+    width: 100%;
+    padding: 8px 4px;
+    font-size: 12px;
+    background: #eef3f8;
+    color: #333;
+    border: 1px solid #dbe4ec;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.dia-btn:hover {
+    background: #dbe4ec;
+}
+
+.dia-btn.ativo {
+    background: #0984e3;
+    color: white;
+    border-color: #0984e3;
+}
+
 /* ☀️ SOL */
 body.sol {
-    background: linear-gradient(120deg, #f6d365, #fda085);
+    background-image: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.15)), url('/static/images/sol.jpg');
 }
 
 /* ☁️ NUBLADO */
 body.nublado {
-    background: linear-gradient(120deg, #bdc3c7, #2c3e50);
+    background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('/static/images/nublado.jpg');
 }
 
 /* 🌧️ CHUVA */
 body.chuva {
-    background: linear-gradient(120deg, #2c3e50, #000428);
+    background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/static/images/chuva.jpg');
 }
 
 /* ❄️ NEVE */
 body.neve {
-    background: linear-gradient(120deg, #74ebd5, #acb6e5);
+    background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('/static/images/neve.jpg');
 }
 
 /* 🌙 NOITE */
 body.noite {
-    background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
+    background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('/static/images/noite.jpg');
 }

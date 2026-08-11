@@ -3,69 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <title>Consulta do Tempo</title>
-
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background 0.5s ease;
-        }
-
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            width: 320px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
-<body
-{% if clima %}
-    {% if clima.eh_noite %}
-        style="background-image: url('/static/images/noite.jpg');"
-    {% else %}
-        style="background-image: url('/static/images/{{ clima.tipo }}.jpg');"
-    {% endif %}
-{% endif %}
->
-
+<body class="{% if clima and not clima.erro %}{% if clima.eh_noite %}noite{% else %}{{ clima.tipo }}{% endif %}{% endif %}">
 
 <div class="container">
     <h1>🌦 Consulta do Tempo</h1>
 
     <form method="POST">
-        <input type="text" name="cidade" placeholder="Digite a cidade" required>
+        <input type="text" name="cidade" placeholder="Digite a cidade"
+               value="{{ clima.cidade if clima and not clima.erro else '' }}" required>
+        <!-- dia: -1 = ontem, 0 = hoje, 1 = amanhã -->
+        <input type="hidden" name="dia" value="{{ clima.dia_offset if clima else 0 }}">
         <button type="submit">Consultar</button>
     </form>
 
     {% if clima and not clima.erro %}
-        <h2>{{ clima.cidade }}</h2>
-        <p>{{ clima.estado }} - {{ clima.pais }}</p>
-        <p>🌡 {{ clima.temperatura }} °C</p>
-        <p>💨 {{ clima.vento }} km/h</p>
 
-        {% if clima.eh_noite %}
-            <p>🌙 Noite</p>
-        {% else %}
-            <p>☀️ Dia</p>
-        {% endif %}
+        <!-- NAVEGAÇÃO ENTRE DIAS -->
+        <div class="dia-nav">
+            <form method="POST">
+                <input type="hidden" name="cidade" value="{{ clima.cidade }}">
+                <input type="hidden" name="dia" value="{{ clima.dia_offset - 1 }}">
+                <button type="submit" class="dia-btn">◀ Ontem</button>
+            </form>
+
+            <form method="POST">
+                <input type="hidden" name="cidade" value="{{ clima.cidade }}">
+                <input type="hidden" name="dia" value="0">
+                <button type="submit" class="dia-btn {% if clima.dia_offset == 0 %}ativo{% endif %}">Hoje</button>
+            </form>
+
+            <form method="POST">
+                <input type="hidden" name="cidade" value="{{ clima.cidade }}">
+                <input type="hidden" name="dia" value="{{ clima.dia_offset + 1 }}">
+                <button type="submit" class="dia-btn">Amanhã ▶</button>
+            </form>
+        </div>
+
+        <h2>{{ clima.cidade }}</h2>
+        <p class="subtitulo">{{ clima.estado }} - {{ clima.pais }}</p>
+
+        <p class="rotulo-dia">
+            {% if clima.dia_offset == 0 %}
+                Agora
+            {% elif clima.dia_offset == -1 %}
+                Ontem{% if clima.data %} · {{ clima.data }}{% endif %}
+            {% elif clima.dia_offset == 1 %}
+                Previsão para amanhã{% if clima.data %} · {{ clima.data }}{% endif %}
+            {% else %}
+                {{ clima.data }}
+            {% endif %}
+        </p>
+
+        <div class="resultado">
+            <p>🌡 {{ clima.temperatura }} °C</p>
+            <p>💨 {{ clima.vento }} km/h</p>
+
+            {% if clima.dia_offset == 1 and clima.probabilidade_chuva is defined %}
+                <p>🌧 {{ clima.probabilidade_chuva }}% de chance de chuva</p>
+            {% endif %}
+
+            {% if clima.eh_noite %}
+                <p>🌙 Noite</p>
+            {% else %}
+                <p>☀️ Dia</p>
+            {% endif %}
+        </div>
     {% endif %}
 
     {% if clima and clima.erro %}
-        <p>{{ clima.erro }}</p>
+        <p class="erro">{{ clima.erro }}</p>
     {% endif %}
 </div>
 
