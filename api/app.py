@@ -10,23 +10,32 @@ def index():
     clima = None
 
     if request.method == "POST":
-        cidade = request.form["cidade"]
+        cidade = request.form.get("cidade", "").strip()
 
-        # Geocoding
-        geo_url = "https://geocoding-api.open-meteo.com/v1/search"
-        geo_params = {
-            "name": cidade,
-            "count": 1,
-            "language": "pt",
-            "format": "json"
-        }
+        if not cidade:
+            clima = {"erro": "Digite uma cidade"}
+            return render_template("index.html", clima=clima)
 
-        geo_data = requests.get(geo_url, params=geo_params).json()
+        try:
+            # Geocoding
+            geo_url = "https://geocoding-api.open-meteo.com/v1/search"
+            geo_params = {
+                "name": cidade,
+                "count": 1,
+                "language": "pt",
+                "format": "json"
+            }
 
-        if "results" not in geo_data:
-            clima = {"erro": "Cidade não encontrada"}
-        else:
-            result = geo_data["results"][0]
+            geo_resp = requests.get(geo_url, params=geo_params, timeout=10)
+            geo_resp.raise_for_status()
+            geo_data = geo_resp.json()
+
+            resultados = geo_data.get("results")
+            if not resultados:
+                clima = {"erro": "Cidade não encontrada"}
+                return render_template("index.html", clima=clima)
+
+            result = resultados[0]
 
             lat = result["latitude"]
             lon = result["longitude"]
@@ -40,10 +49,16 @@ def index():
                 "current_weather": True
             }
 
-            clima_data = requests.get(clima_url, params=clima_params).json()
-            cw = clima_data["current_weather"]
+            clima_resp = requests.get(clima_url, params=clima_params, timeout=10)
+            clima_resp.raise_for_status()
+            clima_data = clima_resp.json()
 
-            weather_code = cw["weathercode"]
+            cw = clima_data.get("current_weather")
+            if not cw:
+                clima = {"erro": "Não foi possível obter o clima agora. Tente novamente."}
+                return render_template("index.html", clima=clima)
+
+            weather_code = cw.get("weathercode")
 
             if weather_code == 0:
                 tipo = "sol"
@@ -56,19 +71,22 @@ def index():
             else:
                 tipo = "padrao"
 
-            # 🔥 AQUI ESTÁ O QUE FALTAVA
-            eh_noite = cw["is_day"] == 0
+            eh_noite = cw.get("is_day") == 0
 
             clima = {
                 "cidade": cidade.title(),
                 "estado": estado,
                 "pais": pais,
-                "temperatura": cw["temperature"],
-                "vento": cw["windspeed"],
+                "temperatura": cw.get("temperature"),
+                "vento": cw.get("windspeed"),
                 "tipo": tipo,
-                "eh_noite": eh_noite
+                "eh_noite": eh_noite,
+                "dia_offset": 0
             }
 
-    return render_template("index.html", clima=clima)
+        except requests.exceptions.RequestException as e:
+            clima = {"erro": f"Erro ao consultar a API de clima: {e}"}
+        except (KeyError, IndexError, ValueError) as e:
+            clima = {"erro": f"Erro ao interpretar a resposta da API: {e}"}
 
-app = app
+    return render_template("index.html", clima=clima)
